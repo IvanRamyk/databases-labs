@@ -7,9 +7,8 @@
 int main() {
     chess_database database = {"/Users/ivanramyk/dev/databases/lab1/player.ind",
                                "/Users/ivanramyk/dev/databases/lab1/player.fl",
-                               "/Users/ivanramyk/dev/databases/lab1member.fl"};
+                               "/Users/ivanramyk/dev/databases/lab1/member.fl"};
     init_database(&database);
-
     database_console_interface console_interface = {database};
     run_interface(&console_interface);
 

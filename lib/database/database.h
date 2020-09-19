@@ -13,7 +13,7 @@ typedef struct ChessDatabase {
     // required fields
     char * player_index_path;
     char * player_file_path;
-    char * club_file_path;
+    char * member_file_path;
 
     // fields managed by base
     int cnt_players;
