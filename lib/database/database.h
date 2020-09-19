@@ -43,7 +43,7 @@ int get_cnt_players(chess_database* database);
 
 int get_cnt_members(chess_database* database);
 
-int get_cnt_clubs(chess_database* database, int player_id);
+int get_cnt_player_members(chess_database* database, int player_id);
 
 void utl_players(chess_database* database);
 

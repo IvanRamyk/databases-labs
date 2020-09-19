@@ -37,7 +37,15 @@ void run_interface(database_console_interface* console_interface) {
         if (strcmp(command, "get_cnt_of_player_memberships") == 0) {
             int id;
             scanf("%d", &id);
-            int result = get_cnt_clubs(&console_interface->database, id);
+            int result = get_cnt_player_members(&console_interface->database, id);
+            printf("%d\n", result);
+        }
+        if (strcmp(command, "get_cnt_members") == 0) {
+            int result = get_cnt_members(&console_interface->database);
+            printf("%d\n", result);
+        }
+        if (strcmp(command, "get_cnt_players") == 0) {
+            int result = get_cnt_players(&console_interface->database);
             printf("%d\n", result);
         }
         if (strcmp(command, "print_members") == 0) {
@@ -51,6 +59,12 @@ void run_interface(database_console_interface* console_interface) {
                 insert_member(&console_interface->database, member);
                 printf("insertion finished.\n");
             }
+        }
+        if (strcmp(command, "get_member") == 0) {
+            int id, player_id;
+            scanf("%d %d", &player_id, &id);
+            chess_club_member result = get_member(&console_interface->database, player_id, id);
+            print_chess_club_member_info(result);
         }
         printf("OK\n");
     }

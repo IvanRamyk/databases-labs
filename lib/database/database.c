@@ -151,8 +151,9 @@ chess_club_member get_member_from_file(chess_database* database, int start_row, 
     FILE* member_file_pointer = fopen(database->member_file_path, "rb");
     int cur_row = start_row;
     int size_of_one_row = sizeof(chess_club_member) + sizeof(int);
-    while (cur_row != -1) {
-        long offset = size_of_one_row * cur_row;
+    int k = 0;
+    while (cur_row != -1 && k++ < 10) {
+        long offset = size_of_one_row * cur_row + sizeof(int);
         fseek(member_file_pointer, offset, SEEK_SET);
         chess_club_member cur_member;
         fread(&cur_member, sizeof(cur_member), 1, member_file_pointer);
@@ -167,7 +168,7 @@ chess_club_member get_member_from_file(chess_database* database, int start_row, 
 chess_club_member get_member(chess_database* database, int player_id, int member_id) {
     int row = get_player_row(database, player_id);
     int position, cnt_memberships;
-    get_additional_info_by_player_row(database, player_id, &position, &cnt_memberships);
+    get_additional_info_by_player_row(database, row, &position, &cnt_memberships);
     return get_member_from_file(database, position, member_id);
 }
 
@@ -187,10 +188,9 @@ int get_cnt_players(chess_database* database) {
     return database->cnt_players;
 }
 
-int get_cnt_clubs(chess_database* database, int player_id) {
+int get_cnt_player_members(chess_database* database, int player_id) {
     int position, cnt_memberships;
     get_additional_info_by_player_row(database, get_player_row(database, player_id), &position, &cnt_memberships);
-    printf("DEBUG %d %d\n", position, cnt_memberships);
     return cnt_memberships;
 }
 
