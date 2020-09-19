@@ -17,7 +17,6 @@ typedef struct ChessDatabase {
 
     // fields managed by base
     int cnt_players;
-    int table_size;
     int ind_table[200];
 } chess_database;
 
@@ -35,9 +34,9 @@ void del_player(chess_database* database, int player_id); //del-m
 
 void del_member(chess_database* database, int player_id, int member_id); //del-s
 
-void update_player(chess_database* database, chess_player player); //update-m
+int update_player(chess_database* database, chess_player player); //update-m
 
-void update_member(chess_database* database, chess_club_member member); //update-s
+int update_member(chess_database* database, chess_club_member member); //update-s
 
 int get_cnt_players(chess_database* database);
 

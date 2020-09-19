@@ -66,6 +66,27 @@ void run_interface(database_console_interface* console_interface) {
             chess_club_member result = get_member(&console_interface->database, player_id, id);
             print_chess_club_member_info(result);
         }
+        if (strcmp(command, "update_player") == 0) {
+            chess_player player;
+            scanf("%d\n%s\n%d\n%d", &player.id, player.full_name, &player.age, &player.rating);
+            print_chess_player_info(player);
+            update_player(&console_interface->database, player);
+        }
+
+        if (strcmp(command, "update_member") == 0) {
+            chess_club_member member;
+            scanf("%d\n%d\n%s\n%s", &member.id, &member.player_id, member.club_name, member.position);
+            print_chess_club_member_info(member);
+            int res = update_member(&console_interface->database, member);
+            printf("%d\n", res);
+        }
+
+        if (strcmp(command, "delete_member") == 0) {
+            int id, player_id;
+            scanf("%d %d", &id, &player_id);
+            del_member(&console_interface->database, player_id, id);
+        }
+
         printf("OK\n");
     }
 }
