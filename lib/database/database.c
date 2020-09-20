@@ -8,6 +8,7 @@
 
 
 void update_index_file(chess_database* database) {
+    printf("%d!\n", database->cnt_players);
     FILE* player_index_file_pointer = fopen(database->player_index_path, "wb");
     fwrite(&database->cnt_players, sizeof(int), 1, player_index_file_pointer);
     if (database->cnt_players != 0) {
@@ -25,7 +26,7 @@ void insert_player_to_index_table(chess_database* database, chess_player player)
 }
 
 void insert_player_to_file(chess_database* database, chess_player player) {
-    FILE* player_file_pointer = fopen(database->player_file_path, "ab");
+    FILE* player_file_pointer = fopen(database->player_file_path, "r+b");
     unsigned size_of_one_item = sizeof(chess_player) + 2 * sizeof(int);
     unsigned offset = size_of_one_item * (database->cnt_players - 1);
     fseek(player_file_pointer, offset, SEEK_SET);
@@ -86,9 +87,9 @@ void get_additional_info_by_player_row(chess_database* database, int player_row,
 void update_additional_player_info(chess_database* database, int player_row,
                                    int first_member_position, int cnt_memberships) {
     FILE* player_file_pointer = fopen(database->player_file_path, "r+b");
-    long size_of_one_item = sizeof(chess_player) + 2 * sizeof(int);
-    long offset = size_of_one_item * (player_row);
-    fseek(player_file_pointer, offset + sizeof(chess_player), SEEK_SET);
+    int size_of_one_item = sizeof(chess_player) + 2 * sizeof(int);
+    unsigned offset = size_of_one_item * (player_row) + sizeof(chess_player);
+    fseek(player_file_pointer, offset, SEEK_SET);
     fwrite(&first_member_position, sizeof(int), 1, player_file_pointer);
     fwrite(&cnt_memberships, sizeof(int), 1, player_file_pointer);
     fclose(player_file_pointer);
@@ -159,8 +160,89 @@ chess_club_member get_member(chess_database* database, int player_id, int member
     return get_member_from_file(database, position, member_id);
 }
 
-void del_player(chess_database* database, int player_id) {
+int get_member_id_by_row(chess_database* database, int row){
+    FILE* member_file_pointer = fopen(database->member_file_path, "rb");
+    int size_of_one_item = sizeof(int) + sizeof(chess_club_member);
+    unsigned offset = size_of_one_item * row + sizeof(int);
+    chess_club_member member;
+    fseek(member_file_pointer, offset, SEEK_SET);
+    fread(&member, sizeof(chess_club_member), 1, member_file_pointer);
+    return member.id;
+}
 
+void delete_player_memberships(chess_database* database, int player_id) {
+    int player_row = get_player_row(database, player_id);
+    int cnt_memberships, member_row;
+    get_additional_info_by_player_row(database, player_row, &member_row, &cnt_memberships);
+    if (member_row == - 1) {
+        return;
+    }
+    int member_id = get_member_id_by_row(database, member_row);
+    printf("%d %d\n",member_id, member_row );
+    while(member_row != - 1) {
+        del_member(database, player_id, member_id);
+        get_additional_info_by_player_row(database, player_row, &member_row, &cnt_memberships);
+        if (member_row == - 1) {
+            return;
+        }
+        member_id = get_member_id_by_row(database, member_row);
+        printf("%d %d\n",member_id, member_row );
+    }
+}
+
+void update_row_in_index_file(chess_database* database, int player_id, int new_row) {
+    for (int i = 0; i < database->cnt_players; ++i) {
+        if (database->ind_table[i * 2] == player_id) {
+            database->ind_table[i * 2 + 1] = new_row;
+        }
+    }
+}
+
+void shift_players_in_index_file(chess_database* database, int deleted_player_id){
+    printf("%d!!!\n", deleted_player_id);
+    int start_row = database->cnt_players;
+    for (int i = 0; i < database->cnt_players;++i) {
+        if (database->ind_table[i * 2] == deleted_player_id) {
+            start_row = i;
+            printf("%d!!!\n", deleted_player_id);
+            break;
+        }
+    }
+    for (int i = start_row; i < database->cnt_players - 1; ++i){
+        database->ind_table[i * 2] = database->ind_table[i * 2 + 2];
+        database->ind_table[i * 2 + 1] = database->ind_table[i * 2 + 3];
+    }
+    database->cnt_players--;
+}
+
+void move_last_player_to_deleted_row(chess_database* database, int deleted_player_id){
+    int player_row = get_player_row(database, deleted_player_id);
+    if (player_row != database->cnt_players - 1) {
+        chess_player last_player = get_player_by_row(database, database->cnt_players - 1);
+        print_chess_player_info(last_player);
+        int cnt_memberships, position_first_member;
+        get_additional_info_by_player_row(database, database->cnt_players - 1,
+                                          &position_first_member, &cnt_memberships);
+        FILE *player_file_pointer = fopen(database->player_file_path, "r+b");
+        int one_item_size = sizeof(chess_player) + 2 * sizeof(int);
+        unsigned offset = one_item_size * player_row;
+        fseek(player_file_pointer, offset, SEEK_SET);
+        fwrite(&last_player, sizeof(chess_player), 1, player_file_pointer);
+        fwrite(&position_first_member, sizeof(int), 1, player_file_pointer);
+        fwrite(&cnt_memberships, sizeof(int), 1, player_file_pointer);
+        fclose(player_file_pointer);
+        update_row_in_index_file(database, last_player.id, player_row);
+    }
+    printf("111\n");
+    shift_players_in_index_file(database, deleted_player_id);
+    printf("111\n");
+    update_index_file(database);
+}
+
+void del_player(chess_database* database, int player_id) {
+    delete_player_memberships(database, player_id);
+    printf("DEBUG: player memberships deleted");
+    move_last_player_to_deleted_row(database, player_id);
 }
 
 void update_player_after_member_deleted(chess_database* database, int player_id, int member_row) {
@@ -176,7 +258,7 @@ void move_last_item_after_member_deleted(chess_database* database, int deleted_r
         return;
     FILE* member_file_pointer = fopen(database->member_file_path, "r+b");
     int size_of_one_item = sizeof(chess_club_member) + sizeof(int);
-    int offset = size_of_one_item * (cnt_members - 1) + sizeof(int);
+    unsigned offset = size_of_one_item * (cnt_members - 1) + sizeof(int);
     fseek(member_file_pointer, offset, SEEK_SET);
     chess_club_member member;
     int next_member;
@@ -190,14 +272,16 @@ void move_last_item_after_member_deleted(chess_database* database, int deleted_r
     update_player_after_member_deleted(database, member.player_id, deleted_row);
 }
 
-void decrease_cnt_sons(chess_database* database, int player_id) {
+void dec_cnt_sons(chess_database* database, int player_id) {
     int position, cnt;
     int row = get_player_row(database, player_id);
     get_additional_info_by_player_row(database, row, &position, &cnt);
+    if (cnt == 1)
+        position = -1;
     update_additional_player_info(database, row, position, cnt - 1);
 }
 
-void delete_from_file(chess_database* database, int player_id, int member_id, int start_row) {
+void delete_member_from_file(chess_database* database, int player_id, int member_id, int start_row) {
     FILE* member_file_pointer = fopen(database->member_file_path, "r+b");
     int cur_row = start_row;
     int prev_row = -1;
@@ -208,7 +292,6 @@ void delete_from_file(chess_database* database, int player_id, int member_id, in
         fseek(member_file_pointer, offset, SEEK_SET);
         chess_club_member cur_member;
         fread(&cur_member, sizeof(chess_club_member), 1, member_file_pointer);
-        printf("%d %d %d\n", cur_row, cur_member.id, member_id);
         if (cur_member.id == member_id){
             int next_row;
             fread(&next_row, sizeof(int), 1, member_file_pointer);
@@ -218,7 +301,7 @@ void delete_from_file(chess_database* database, int player_id, int member_id, in
             }
             else {
                 // update prev member ptr
-                offset = size_of_one_row * prev_row + sizeof(int) * sizeof(chess_club_member);
+                offset = size_of_one_row * prev_row + sizeof(int) + sizeof(chess_club_member);
                 fseek(member_file_pointer, offset, SEEK_SET);
                 fwrite(&next_row, sizeof(int), 1, member_file_pointer);
             }
@@ -239,14 +322,15 @@ void set_cnt_members(chess_database* database, int value) {
 }
 
 void del_member(chess_database* database, int player_id, int member_id) {
+    printf("%d %d - - - - \n", player_id, member_id);
     if (get_member(database, player_id, member_id).id == -1)
         return;
     int start_position, cnt_sons;
     int row = get_player_row(database, player_id);
     get_additional_info_by_player_row(database, row, &start_position, &cnt_sons);
-    delete_from_file(database,player_id,member_id, start_position);
+    delete_member_from_file(database,player_id,member_id, start_position);
     int cnt_members = get_cnt_members(database);
-    decrease_cnt_sons(database, player_id);
+    dec_cnt_sons(database, player_id);
     set_cnt_members(database, cnt_members - 1);
 }
 

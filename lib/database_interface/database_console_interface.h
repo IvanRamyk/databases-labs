@@ -87,6 +87,12 @@ void run_interface(database_console_interface* console_interface) {
             del_member(&console_interface->database, player_id, id);
         }
 
+        if (strcmp(command, "delete_player") == 0) {
+            int id;
+            scanf("%d", &id);
+            del_player(&console_interface->database, id);
+        }
+
         printf("OK\n");
     }
 }
