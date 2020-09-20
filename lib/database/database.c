@@ -20,8 +20,17 @@ void update_index_file(chess_database* database) {
 
 void insert_player_to_index_table(chess_database* database, chess_player player) {
     database->cnt_players++;
-    database->ind_table[(database->cnt_players - 1) * 2] = player.id;
-    database->ind_table[(database->cnt_players - 1) * 2 + 1] = database->cnt_players -1;
+    for (int i = database->cnt_players - 1; i >= 0; i--) {
+        if (i == 0 || database->ind_table[2 * (i - 1)] < player.id) {
+            database->ind_table[i * 2] = player.id;
+            database->ind_table[i * 2 + 1] = database->cnt_players - 1;
+            break;
+        }
+        else {
+            database->ind_table[i * 2] =  database->ind_table[2 * (i - 1)];
+            database->ind_table[i * 2 + 1] =  database->ind_table[2 * (i - 1) + 1];
+        }
+    }
     update_index_file(database);
 }
 
@@ -65,11 +74,24 @@ void insert_member_to_file(chess_database* database, chess_club_member member, i
 }
 
 int get_player_row(chess_database* database, int player_id) {
-    for (int i = 0; i < database->cnt_players; ++i) {
-        if (database->ind_table[i * 2] == player_id) {
-            return database->ind_table[i * 2 + 1];
-        }
+    int left = 0;
+    int right = database->cnt_players - 1;
+    while (right - left > 1) {
+        int middle = (right + left) / 2;
+        if (database->ind_table[middle * 2] < player_id)
+            left = middle;
+        else
+            right = middle;
     }
+    if (database->ind_table[left * 2] == player_id)
+        return database->ind_table[left * 2 + 1];
+    if (database->ind_table[right * 2] == player_id)
+        return database->ind_table[right * 2 + 1];
+//    for (int i = 0; i < database->cnt_players; ++i) {
+//        if (database->ind_table[i * 2] == player_id) {
+//            return database->ind_table[i * 2 + 1];
+//        }
+//    }
     return -1;
 }
 
@@ -373,20 +395,20 @@ void utl_players(chess_database* database) {
     fclose(player_file_pointer);
 }
 
-//void utl_index_players(chess_database* database) {
-//    FILE* player_index_file_pointer = fopen(database->player_index_path, "rb");
-//
-//    int cnt_players;
-//    fread(&cnt_players, sizeof(int), 1, player_index_file_pointer);
-//    int table[2*cnt_players];
-//    if (cnt_players != 0) {
-//        fread(table, sizeof(int), cnt_players * 2, player_index_file_pointer);
-//    }
-//    for (int i = 0; i < 2*cnt_players;++i)
-//        printf("%d ", table[i]);
-//    printf("\n");
-//    fclose(player_index_file_pointer);
-//}
+void utl_index_players(chess_database* database) {
+    FILE* player_index_file_pointer = fopen(database->player_index_path, "rb");
+
+    int cnt_players;
+    fread(&cnt_players, sizeof(int), 1, player_index_file_pointer);
+    int table[2*cnt_players];
+    if (cnt_players != 0) {
+        fread(table, sizeof(int), cnt_players * 2, player_index_file_pointer);
+    }
+    for (int i = 0; i < cnt_players;++i)
+        printf("%d %d\n", table[2 * i], table[2 * i + 1]);
+    printf("\n");
+    fclose(player_index_file_pointer);
+}
 
 void utl_members(chess_database* database) {
     FILE* member_file_pointer = fopen(database->member_file_path, "rb");

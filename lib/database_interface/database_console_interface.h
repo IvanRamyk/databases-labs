@@ -93,6 +93,10 @@ void run_interface(database_console_interface* console_interface) {
             del_player(&console_interface->database, id);
         }
 
+        if (strcmp(command, "print_index") == 0) {
+            utl_index_players(&console_interface->database);
+        }
+
         printf("OK\n");
     }
 }
