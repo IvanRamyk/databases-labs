@@ -2,7 +2,7 @@
 #include "lib/models/chess_player.h"
 #include "lib/models/chess_club_member.h"
 #include "lib/database/database.h"
-#include "lib/database_interface/database_console_interface.h"
+#include "lib/database/database_console_interface.h"
 
 int main() {
     chess_database database = {"/Users/ivanramyk/dev/databases/lab1/player.ind",

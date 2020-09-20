@@ -6,7 +6,7 @@
 #define LAB1_DATABASE_CONSOLE_INTERFACE_H
 
 #include <stdio.h>
-#include "../database/database.h"
+#include "database.h"
 #include <string.h>
 
 struct DatabaseConsoleInterface {
