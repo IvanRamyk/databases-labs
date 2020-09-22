@@ -271,7 +271,8 @@ void update_player_after_member_deleted(chess_database* database, int player_id,
     int position, cnt;
     int row = get_player_row(database, player_id);
     get_additional_info_by_player_row(database, row, &position, &cnt);
-    update_additional_player_info(database, row, member_row, cnt);
+    if (member_row == get_cnt_members(database))
+        update_additional_player_info(database, row, member_row, cnt);
 }
 
 void move_last_item_after_member_deleted(chess_database* database, int deleted_row) {
@@ -503,3 +504,6 @@ int update_member(chess_database* database, chess_club_member member) {
     return update_member_in_file(database, position, member);
 
 }
+
+//TODO
+
