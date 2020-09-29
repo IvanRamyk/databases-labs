@@ -50,5 +50,9 @@ void utl_members(chess_database* database);
 
 void utl_index_players(chess_database* database);
 
+void print_players(chess_database* database);
+
+void print_members(chess_database* database);
+
 
 #endif //LAB1_DATABASE_H
