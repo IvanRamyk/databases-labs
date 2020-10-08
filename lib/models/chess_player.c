@@ -7,6 +7,6 @@
 #include "chess_player.h"
 
 void print_chess_player_info(chess_player player) {
-    printf("Chess player no %d: %s, %d years old, rating: %d\n",
+    printf("Chess player #%d: %s, %d years old, rating: %d\n",
             player.id, player.full_name, player.age, player.rating);
 }

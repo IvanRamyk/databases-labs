@@ -85,11 +85,6 @@ int get_player_row(chess_database* database, int player_id) {
         return database->ind_table[left * 2 + 1];
     if (database->ind_table[right * 2] == player_id)
         return database->ind_table[right * 2 + 1];
-//    for (int i = 0; i < database->cnt_players; ++i) {
-//        if (database->ind_table[i * 2] == player_id) {
-//            return database->ind_table[i * 2 + 1];
-//        }
-//    }
     return -1;
 }
 
@@ -148,7 +143,7 @@ chess_player get_player(chess_database* database, int player_id) {
             return get_player_by_row(database, row);
         }
     }
-    chess_player player = {-1, "", 0, 0};
+    chess_player player = {-1, 0, 0, ""};
     return player;
 }
 

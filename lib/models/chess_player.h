@@ -7,9 +7,9 @@
 
 typedef struct ChessPlayer {
     int id;
-    char full_name[45];
     int age;
     int rating;
+    char full_name[45];
 } chess_player;
 
 void print_chess_player_info(chess_player player);
